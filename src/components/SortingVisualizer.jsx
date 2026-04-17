@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import {generateArray } from "../utils/generateArray";
 import { getBubbleSortAnimations } from "../algorithms/bubbleSort";
 import { getMergeSortAnimations } from "../algorithms/mergeSort";
+import { getQuickSortAnimations } from "../algorithms/quickSort";
 
 const SortingVisualizer = () => {
   const [array, setArray] =useState([]);
   const [speed, setSpeed] = useState(100);
   const [size, setSize] = useState(30);
   const [isSorting, setIsSorting] = useState(false);
+  const [algorithm, setAlgorithm] = useState("bubble");
 
   useEffect(()=> {
     createNewArray();
@@ -90,11 +92,93 @@ const SortingVisualizer = () => {
     }, animations.length * speed);
   };
 
+  const quickSort = () => {
+    setIsSorting(true);
+
+    const animations = getQuickSortAnimations(array);
+    const newArray = [...array];
+
+    animations.forEach((animation, i) => {
+      setTimeout(() => {
+        const bars = document.getElementsByClassName("bar");
+
+        const [a, b] = animation.indices;
+
+        if (animation.type === "compare") {
+          bars[a].style.backgroundColor = "yellow";
+          bars[b].style.backgroundColor = "yellow";
+
+          setTimeout(() => {
+            bars[a].style.backgroundColor = "teal";
+            bars[b].style.backgroundColor = "teal";
+          }, speed);
+        }
+
+        if (animation.type === "swap") {
+          let temp = newArray[a];
+          newArray[a] = newArray[b];
+          newArray[b] = temp;
+
+          setArray([...newArray]);
+        }
+
+      }, i * speed);
+    });
+
+    setTimeout(() => {
+      setIsSorting(false);
+    }, animations.length * speed);
+  };
+
+  const algorithmInfo = {
+    bubble: {
+      name: "Bubble Sort",
+      time: "O(n²)",
+      space: "O(1)",
+      stable: "Yes",
+      description: "Repeatedly compares adjacent elements and swaps them if they are in wrong order.",
+    },
+    merge: {
+      name: "Merge Sort",
+      time: "O(n log n)",
+      space: "O(n)",
+      stable: "Yes",
+      description: "Divides the array into halves, sorts them recursively, and merges them.",
+    },
+    quick: {
+      name: "Quick Sort",
+      time: "O(n log n)",
+      space: "O(log n)",
+      stable: "No",
+      description: "Selects a pivot and partitions the array around it.",
+    },
+  };
+
+  const handleSort = () => {
+    if (algorithm === "bubble") {
+      bubbleSort();
+    } else if (algorithm === "merge") {
+      mergeSort();
+    } else if (algorithm === "quick") {
+      quickSort();
+    }
+  };
+
+
   return (
     
     <div className="flex flex-col items-center">
       <div className="flex gap-6 mb-4">
 
+        <select
+          value={algorithm}
+          onChange={(e) => setAlgorithm(e.target.value)}
+          className="px-3 py-2 rounded text-white bg-gray-700"
+        >
+          <option value="bubble">Bubble Sort</option>
+          <option value="merge">Merge Sort</option>
+          <option value="quick">Quick Sort</option>
+        </select>
 
         <div className="flex flex-col items-center">
           <label>Array Size</label>
@@ -129,20 +213,13 @@ const SortingVisualizer = () => {
         </button>
 
         <button
-          onClick={bubbleSort}
+          onClick={handleSort}
           disabled={isSorting}
-          className="bg-green-500 text-white px-4 py-2 rounded mb-4"
+          className="bg-green-500 px-4 py-2 rounded text-white"
         >
-          Bubble Sort
+          Run Algorithm
         </button>
 
-        <button
-          onClick={mergeSort}
-          disabled={isSorting}
-          className="bg-purple-500 text-white px-4 py-2 rounded mb-4"
-        >
-          Merge Sort
-        </button>
 
         <button
           onClick={createNewArray}
@@ -153,9 +230,26 @@ const SortingVisualizer = () => {
 
       </div>
 
-      <div className="text-center mt-4">
-        <p>Bubble Sort: O(n²)</p>
-        <p>Merge Sort: O(n log n)</p>
+      <div className="bg-gray-800 p-4 rounded mt-4 w-[400px] text-center">
+        <h2 className="text-xl font-bold">
+          {algorithmInfo[algorithm].name}
+        </h2>
+
+        <p className="mt-2">
+          Time Complexity: {algorithmInfo[algorithm].time}
+        </p>
+
+        <p className="mt-2 text-sm text-gray-300">
+          {algorithmInfo[algorithm].description}
+        </p>
+
+        <p className="mt-2">
+          Space Complexity: {algorithmInfo[algorithm].space}
+        </p>
+
+        <p className="mt-2">
+          Stable: {algorithmInfo[algorithm].stable}
+        </p>
       </div>
 
       <div className="flex items-end h-[400px] gap-[2px]">
